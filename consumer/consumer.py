@@ -20,8 +20,7 @@ count = 0
 while True:
     try:
         data = r.xreadgroup("groupname", name, streams={"mystream" : ">"}, count=1, block=0)
-        print("Type ______________________________________ : ",type(data))
-        exit("STOP!!" ,data)
+
         get = data[0][1][0][1]
 
         query = """ INSERT INTO public.users(user_id, first_name, last_name, email, gender, ip_address, user_name, agent, country)VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s)"""
@@ -32,8 +31,6 @@ while True:
         conn.commit()
 
         count += 1
-        print(count,"-",os.getenv('HOSTNAME'))
+        print(count,"Container ID:",os.getenv('HOSTNAME'), "Last ID:", data[0][1][0][0])
     except:
-        print("EXCEPT!!!")
-        exit()
         r.xgroup_create("mystream", "groupname", "$", mkstream=True)
