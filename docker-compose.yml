@@ -1,0 +1,75 @@
+version: "3.9"
+
+services:
+    
+  pgadmin:
+    image: dpage/pgadmin4
+    ports: 
+      - 8080:80
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=user@domain.com
+      - PGADMIN_DEFAULT_PASSWORD=SuperSecret
+    networks:
+      - mynetwork
+
+  flask:
+    build: ./flask
+    container_name: flask
+    depends_on:
+      - redis
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: pg1234
+    ports:
+      - "5000:5000"
+    networks:
+      - mynetwork
+
+
+  redis:
+    image: redis
+    container_name: redis
+    restart: always
+    ports:
+      - "6379:6379"
+    networks:
+      - mynetwork
+
+  consumer:
+    build: ./consumer
+    depends_on:
+      - postgres
+      - redis
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: pg1234
+    networks:
+      - mynetwork
+    deploy:
+      mode: replicated
+      replicas: 3
+
+
+  postgres:
+    image: postgres
+    depends_on:
+      - redis
+    container_name: postgres
+    restart: always
+    volumes:
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      POSTGRES_PASSWORD: pg1234
+    ports:
+      - "5432:5432"
+    networks:
+      - mynetwork
+
+  
+
+
+networks:
+  mynetwork:
+    driver: bridge 
+
+
